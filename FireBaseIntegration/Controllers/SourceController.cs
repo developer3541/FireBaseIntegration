@@ -1,4 +1,5 @@
-﻿using FireBaseIntegration.Service;
+﻿using FireBaseIntegration.DTO;
+using FireBaseIntegration.Service;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FireBaseIntegration.Controllers
@@ -14,21 +15,26 @@ namespace FireBaseIntegration.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Id(string user, string pass)
+        public async Task<IActionResult> Get(string barcode)
         {
-            bool result = false;
-            if (!string.IsNullOrEmpty(user) || !string.IsNullOrEmpty(pass))
+            Source src = new Source();
+            if (!string.IsNullOrEmpty(barcode))
             {
-                result = await FireBaseService.Users(user, pass);
+                src = await FireBaseService.SourceRetrival(barcode);
             }
-            if (result)
+            return Ok(src);
+        }
+        [HttpPost]
+        //public async Task<IActionResult> Set([FromBody] Source src)
+        public async Task<IActionResult> Set(string code, string quantity)
+        {
+            Source src = new Source();
+            bool done = false;
+            if (!string.IsNullOrEmpty(src.Quantity))
             {
-                return new JsonResult($"Welcome {user}");
+                done = await FireBaseService.DestinationUpdate(src);
             }
-            else
-            {
-                return new JsonResult($"User {user} credentials doesn't match");
-            }
+            return Ok(new JsonResult("Update"));
         }
     }
 }
