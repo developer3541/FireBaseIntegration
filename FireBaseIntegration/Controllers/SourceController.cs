@@ -24,17 +24,19 @@ namespace FireBaseIntegration.Controllers
             }
             return Ok(src);
         }
-        [HttpPost]
+        [HttpGet]
         //public async Task<IActionResult> Set([FromBody] Source src)
         public async Task<IActionResult> Set(string code, string quantity)
         {
             Source src = new Source();
+            src.Code = code;
+            src.Quantity = quantity;
             bool done = false;
             if (!string.IsNullOrEmpty(src.Quantity))
             {
                 done = await FireBaseService.DestinationUpdate(src);
             }
-            return Ok(new JsonResult("Update"));
+            return Ok(new JsonResult("Update: " + done));
         }
     }
 }
