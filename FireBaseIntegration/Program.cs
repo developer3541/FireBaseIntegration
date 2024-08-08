@@ -8,6 +8,7 @@ builder.Services.AddSingleton(FirebaseApp.Create());
 
 builder.Services.AddControllers();
 builder.Services.AddSingleton<FireBaseService>();
+builder.Services.AddSingleton<SQLService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

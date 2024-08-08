@@ -7,14 +7,16 @@ namespace FireBaseIntegration.Service
 {
     public class FireBaseService
     {
-
-        public void newmethods()
+        private readonly IConfiguration _configuration;
+        public FireBaseService(IConfiguration configuration)
         {
+            this._configuration = configuration;
         }
         public async Task<bool> Users(string user, string pass)
         {
+            string proj = _configuration["DataConnection:ProjectId"];
             bool userexists = false;
-            FirestoreDb db = FirestoreDb.Create("project-b86ae");
+            FirestoreDb db = FirestoreDb.Create(proj);
             //var usersRef = db.Collection("users");
             Query capitalQuery = db.Collection("Users").WhereEqualTo("username", user).WhereEqualTo("password", pass);
             QuerySnapshot capitalQuerySnapshot = await capitalQuery.GetSnapshotAsync();
@@ -34,9 +36,10 @@ namespace FireBaseIntegration.Service
         }
         public async Task<Source> SourceRetrival(string barcode)
         {
+            string proj = _configuration["DataConnection:ProjectId"];
             Source src = new Source();
             bool userexists = false;
-            FirestoreDb db = FirestoreDb.Create("project-b86ae");
+            FirestoreDb db = FirestoreDb.Create(proj);
             //var usersRef = db.Collection("users");
             Query capitalQuery = db.Collection("Source").WhereEqualTo("Code", barcode);
             QuerySnapshot capitalQuerySnapshot = await capitalQuery.GetSnapshotAsync();
@@ -58,10 +61,13 @@ namespace FireBaseIntegration.Service
             }
             return src;
         }
-        public async Task<bool> DestinationUpdate(Source src)
+        public async Task<PayLoad> DestinationUpdate(Source src)
         {
+            PayLoad payLoad = new PayLoad();
+            Destination destination = new Destination();
             bool updated = false;
-            FirestoreDb db = FirestoreDb.Create("project-b86ae");
+            string proj = _configuration["DataConnection:ProjectId"];
+            FirestoreDb db = FirestoreDb.Create(proj);
             CollectionReference destinationRef = db.Collection("Destination");
             Query query = destinationRef.WhereEqualTo("Code", src.Code);
             QuerySnapshot snapshot = await query.GetSnapshotAsync();
@@ -81,6 +87,49 @@ namespace FireBaseIntegration.Service
                         // Update the document
                         await document.Reference.UpdateAsync(updates);
                         updated = true;
+                        DocumentSnapshot updatedDocument = await document.Reference.GetSnapshotAsync();
+                        if (updatedDocument.Exists)
+                        {
+                            Dictionary<string, object> documentData = updatedDocument.ToDictionary();
+                            foreach (var kvp in documentData)
+                            {
+
+                                switch (kvp.Key)
+                                {
+                                    case "Code":
+                                        destination.Code = kvp.Value.ToString();
+                                        break;
+                                    case "lineNo":
+                                        destination.lineNo = kvp.Value.ToString();
+                                        break;
+                                    case "location":
+                                        destination.location = kvp.Value.ToString();
+                                        break;
+                                    case "New_Quantity":
+                                        destination.New_Quantity = kvp.Value.ToString();
+                                        break;
+                                    case "User":
+                                        destination.User = kvp.Value.ToString();
+                                        break;
+                                    case "Update_Date":
+
+                                        if (kvp.Value is Timestamp timestampDate)
+                                            destination.Update_Date = timestampDate.ToDateTime();
+                                        break;
+                                    case "Update_Time":
+                                        if (kvp.Value is Timestamp timestampTime)
+                                            destination.Update_Time = timestampTime.ToDateTime();
+                                        break;
+                                    default:
+                                        Console.WriteLine($"Unexpected field: {kvp.Key}");
+                                        break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Document {document.Id} does not exist!");
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -92,7 +141,9 @@ namespace FireBaseIntegration.Service
                     Console.WriteLine($"Document {document.Id} does not exist!");
                 }
             }
-            return updated;
+            payLoad.Destination = destination;
+            payLoad.updated = updated;
+            return payLoad;
         }
     }
 }

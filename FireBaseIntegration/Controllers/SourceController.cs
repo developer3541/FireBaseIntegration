@@ -9,9 +9,11 @@ namespace FireBaseIntegration.Controllers
     public class SourceController : ControllerBase
     {
         public FireBaseService FireBaseService { get; set; }
-        public SourceController(FireBaseService fireBaseService)
+        public SQLService SqlService { get; set; }
+        public SourceController(FireBaseService fireBaseService, SQLService sQLService)
         {
             this.FireBaseService = fireBaseService;
+            this.SqlService = sQLService;
         }
 
         [HttpGet]
@@ -28,13 +30,18 @@ namespace FireBaseIntegration.Controllers
         //public async Task<IActionResult> Set([FromBody] Source src)
         public async Task<IActionResult> Set(string code, string quantity)
         {
+            PayLoad payload = new PayLoad();
             Source src = new Source();
             src.Code = code;
             src.Quantity = quantity;
             bool done = false;
             if (!string.IsNullOrEmpty(src.Quantity))
             {
-                done = await FireBaseService.DestinationUpdate(src);
+                payload = await FireBaseService.DestinationUpdate(src);
+            }
+            if (payload.updated)
+            {
+                await SqlService.InsertDestinationData(payload.Destination);
             }
             return Ok(new JsonResult("Update: " + done));
         }
