@@ -24,8 +24,8 @@ namespace FireBaseIntegration.Controllers
         [HttpGet]
         public async Task<IActionResult> SignIn(string user, string pass)
         {
-            Destination destination = new Destination();
-            await sqlsvc.InsertDestinationData(destination);
+            //Destination destination = new Destination();
+            //await sqlsvc.InsertDestinationData(destination);
             bool result = false;
             if (!string.IsNullOrEmpty(user) || !string.IsNullOrEmpty(pass))
             {

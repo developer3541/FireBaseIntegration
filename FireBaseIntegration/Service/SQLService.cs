@@ -14,17 +14,8 @@ namespace FireBaseIntegration.Service
         }
         public async Task<bool> InsertDestinationData(Destination des)
         {
-            Destination dest = des;
             string constring = _configuration["DataConnection:ConnectionString"];
-            SqlCommand sqlCommand = new SqlCommand(@"INSERT INTO Destination (Code, lineNo, location, New_Quantity, User, Update_Date, Update_Time)
-                                     VALUES ( @Code, @LineNo, @Location, @New_Quantity, @User, @Update_Date, @Update_Time)");
-            sqlCommand.Parameters.AddWithValue("@Code", dest.Code ?? (object)DBNull.Value);
-            sqlCommand.Parameters.AddWithValue("@LineNo", dest.lineNo ?? (object)DBNull.Value);
-            sqlCommand.Parameters.AddWithValue("@Location", dest.location ?? (object)DBNull.Value);
-            sqlCommand.Parameters.AddWithValue("@New_Quantity", dest.New_Quantity ?? (object)DBNull.Value);
-            sqlCommand.Parameters.AddWithValue("@User", dest.User ?? (object)DBNull.Value);
-            sqlCommand.Parameters.AddWithValue("@Update_Date", dest.Update_Date);
-            sqlCommand.Parameters.AddWithValue("@Update_Time", dest.Update_Time);
+            SqlCommand sqlCommand = new SqlCommand($"INSERT INTO [dbo].[Destination] ([Id], [Code], [lineNo], [location], [New_Quantity], [User], [Update_Date], [Update_Time])    SELECT      NEXT VALUE FOR destination_sequence , '{des.Code}', '{des.lineNo}', '{des.location}', '{des.New_Quantity}', '{des.User}', '{des.Update_Date.ToString("yyyy-MM-dd")}', '{des.Update_Time.ToString("yyyy-MM-dd")}'");
 
             using (var sql1 = new SqlConnection(constring))
             {
@@ -32,11 +23,11 @@ namespace FireBaseIntegration.Service
                 {
                     sql1.Open();
                     sqlCommand.Connection = sql1;
-                    sqlCommand.ExecuteNonQuery();
+                    await sqlCommand.ExecuteNonQueryAsync();
                 }
                 catch (Exception ex)
                 {
-
+                    return false;
                 }
                 finally
                 {

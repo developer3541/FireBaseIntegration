@@ -35,15 +35,55 @@ namespace FireBaseIntegration.Controllers
             src.Code = code;
             src.Quantity = quantity;
             bool done = false;
+            string su = "";
             if (!string.IsNullOrEmpty(src.Quantity))
             {
                 payload = await FireBaseService.DestinationUpdate(src);
             }
             if (payload.updated)
             {
-                await SqlService.InsertDestinationData(payload.Destination);
+                done = await SqlService.InsertDestinationData(payload.Destination);
+
+                if (done)
+                {
+                    var response = new
+                    {
+                        Message = "Record Updated in Firebase and Inserted in SQL: " + su,
+                        statuscode = 200
+                    };
+
+                    return new ObjectResult(response)
+                    {
+                    };
+                }
+                else
+                {
+                    su = "failed";
+                    var response = new
+                    {
+                        Message = "Record Updated in Firebase and Inserted in SQL: " + su,
+                        statuscode = 404
+                    };
+
+                    return new ObjectResult(response)
+                    {
+                    };
+                }
             }
-            return Ok(new JsonResult("Update: " + done));
+            else
+            {
+                su = "failed";
+                var response = new
+                {
+                    Message = "Record Updation Failed in Firebase",
+                    statuscode = 404
+                };
+
+                return new ObjectResult(response)
+                {
+                };
+
+            }
         }
     }
 }
