@@ -1,6 +1,7 @@
 ﻿using FireBaseIntegration.DTO;
 using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 using System.IO;
 
 namespace FireBaseIntegration.Service
@@ -103,7 +104,9 @@ namespace FireBaseIntegration.Service
                     // Create a dictionary with the field to update
                     Dictionary<string, object> updates = new Dictionary<string, object>
                     {
-                        { "New_Quantity", src.Quantity } // Replace newQuantityValue with the new value for the quantity field
+                        { "New_Quantity", src.Quantity }, // Replace newQuantityValue with the new value for the quantity field
+                        { "Update_Date", GetTimestamp(DateTime.Now) },// Replace newQuantityValue with the new value for the quantity field
+                        { "Update_Time",  GetTimestamp(DateTime.Now)} // Replace newQuantityValue with the new value for the quantity field
                     };
                     try
                     {
@@ -136,12 +139,12 @@ namespace FireBaseIntegration.Service
                                         break;
                                     case "Update_Date":
 
-                                        if (kvp.Value is Timestamp timestampDate)
-                                            destination.Update_Date = timestampDate.ToDateTime();
+                                        if (kvp.Value is string)
+                                            destination.Update_Date = DateTime.ParseExact(kvp.Value.ToString(), "yyyy/MM/dd/ HH:mm", CultureInfo.InvariantCulture);
                                         break;
                                     case "Update_Time":
-                                        if (kvp.Value is Timestamp timestampTime)
-                                            destination.Update_Time = timestampTime.ToDateTime();
+                                        if (kvp.Value is string)
+                                            destination.Update_Time = DateTime.ParseExact(kvp.Value.ToString(), "yyyy/MM/dd/ HH:mm", CultureInfo.InvariantCulture);
                                         break;
                                     default:
                                         Console.WriteLine($"Unexpected field: {kvp.Key}");
@@ -168,6 +171,10 @@ namespace FireBaseIntegration.Service
             payLoad.Destination = destination;
             payLoad.updated = updated;
             return payLoad;
+        }
+        public static String GetTimestamp(DateTime value)
+        {
+            return value.ToString("yyyy/MM/dd/ HH:mm");
         }
     }
 }
