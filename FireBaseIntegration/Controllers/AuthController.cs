@@ -33,11 +33,29 @@ namespace FireBaseIntegration.Controllers
             }
             if (result)
             {
-                return new JsonResult($"Welcome {user}");
+                var response = new
+                {
+                    Message = $"Welcome {user}",
+                    status = $"true",
+                    model = ""
+                };
+
+                return new ObjectResult(response)
+                {
+                };
             }
             else
             {
-                return new JsonResult($"User {user} credentials doesn't match");
+                var response = new
+                {
+                    Message = "User doesn't exists",
+                    status = "false",
+                    model = ""
+                };
+
+                return new ObjectResult(response)
+                {
+                };
             }
         }
     }

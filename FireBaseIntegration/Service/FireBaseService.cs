@@ -34,10 +34,12 @@ namespace FireBaseIntegration.Service
             }
             return userexists;
         }
-        public async Task<Source> SourceRetrival(string barcode)
+        public async Task<SourcePayload> SourceRetrival(string barcode)
         {
+            SourcePayload payload = new SourcePayload();
             string proj = _configuration["DataConnection:ProjectId"];
             Source src = new Source();
+            payload.source = src;
             bool userexists = false;
             FirestoreDb db = FirestoreDb.Create(proj);
             //var usersRef = db.Collection("users");
@@ -53,13 +55,16 @@ namespace FireBaseIntegration.Service
                     src.Quantity = document.GetValue<string>("Quantity");
                     src.lineNo = document.GetValue<string>("lineNo");
                     src.location = document.GetValue<string>("location");
+                    payload.status = true;
+
                 }
                 else
                 {
-
+                    src = null;
+                    payload.status = false;
                 }
             }
-            return src;
+            return payload;
         }
         public async Task<PayLoad> DestinationUpdate(Source src)
         {

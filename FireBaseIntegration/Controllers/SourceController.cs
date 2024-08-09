@@ -19,12 +19,21 @@ namespace FireBaseIntegration.Controllers
         [HttpGet]
         public async Task<IActionResult> Get(string barcode)
         {
-            Source src = new Source();
+            SourcePayload payload = new SourcePayload();
             if (!string.IsNullOrEmpty(barcode))
             {
-                src = await FireBaseService.SourceRetrival(barcode);
+                payload = await FireBaseService.SourceRetrival(barcode);
             }
-            return Ok(src);
+            var response = new
+            {
+                Message = "",
+                status = $"{payload.status}",
+                model = payload.source
+            };
+
+            return new ObjectResult(response)
+            {
+            };
         }
         [HttpGet]
         //public async Task<IActionResult> Set([FromBody] Source src)
@@ -48,8 +57,9 @@ namespace FireBaseIntegration.Controllers
                 {
                     var response = new
                     {
-                        Message = "Record Updated in Firebase and Inserted in SQL: " + su,
-                        statuscode = 200
+                        Message = "Record Updated in Firebase and Inserted in SQL",
+                        status = "true",
+                        model = payload.Destination
                     };
 
                     return new ObjectResult(response)
@@ -61,8 +71,9 @@ namespace FireBaseIntegration.Controllers
                     su = "failed";
                     var response = new
                     {
-                        Message = "Record Updated in Firebase and Inserted in SQL: " + su,
-                        statuscode = 404
+                        Message = "Record Updated in Firebase but Insertion in SQL Failed",
+                        status = "true",
+                        model = payload.Destination
                     };
 
                     return new ObjectResult(response)
@@ -76,7 +87,8 @@ namespace FireBaseIntegration.Controllers
                 var response = new
                 {
                     Message = "Record Updation Failed in Firebase",
-                    statuscode = 404
+                    status = "false",
+                    model = payload.Destination
                 };
 
                 return new ObjectResult(response)
