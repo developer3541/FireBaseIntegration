@@ -23,23 +23,25 @@ namespace FireBaseIntegration.Controllers
             if (!string.IsNullOrEmpty(barcode))
             {
                 payload = await FireBaseService.SourceRetrival(barcode);
-            }
+            }   
+
             var response = new
             {
-                Message = "",
+                Message = payload.exc,
                 status = $"{payload.status}",
                 model = payload.source
             };
-
             return new ObjectResult(response)
             {
             };
+
         }
         [HttpGet]
         //public async Task<IActionResult> Set([FromBody] Source src)
         public async Task<IActionResult> Set(string code, string quantity)
         {
             PayLoad payload = new PayLoad();
+            SQLPayload sQLPayload = new SQLPayload();
             Source src = new Source();
             src.Code = code;
             src.Quantity = quantity;
@@ -51,9 +53,9 @@ namespace FireBaseIntegration.Controllers
             }
             if (payload.updated)
             {
-                done = await SqlService.InsertDestinationData(payload.Destination);
+                sQLPayload = await SqlService.InsertDestinationData(payload.Destination);
 
-                if (done)
+                if (sQLPayload.status)
                 {
                     var response = new
                     {
@@ -71,7 +73,7 @@ namespace FireBaseIntegration.Controllers
                     su = "failed";
                     var response = new
                     {
-                        Message = "Record Updated in Firebase but Insertion in SQL Failed",
+                        Message = $"Record Updated in Firebase but Insertion in SQL Failed. Exception : {sQLPayload.sqlissue}",
                         status = "true",
                         model = payload.Destination
                     };
@@ -86,7 +88,7 @@ namespace FireBaseIntegration.Controllers
                 su = "failed";
                 var response = new
                 {
-                    Message = "Record Updation Failed in Firebase",
+                    Message = $"Record Updation Failed in Firebase. Issue: {payload.exc}",
                     status = "false",
                     model = payload.Destination
                 };

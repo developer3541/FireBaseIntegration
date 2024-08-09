@@ -41,28 +41,42 @@ namespace FireBaseIntegration.Service
             Source src = new Source();
             payload.source = src;
             bool userexists = false;
-            FirestoreDb db = FirestoreDb.Create(proj);
-            //var usersRef = db.Collection("users");
-            Query capitalQuery = db.Collection("Source").WhereEqualTo("Code", barcode);
-            QuerySnapshot capitalQuerySnapshot = await capitalQuery.GetSnapshotAsync();
-            string result = "";
-            foreach (DocumentSnapshot document in capitalQuerySnapshot.Documents)
+            try
             {
-                if (document.Exists)
+                FirestoreDb db = FirestoreDb.Create(proj);
+                //var usersRef = db.Collection("users");
+                Query capitalQuery = db.Collection("Source").WhereEqualTo("Code", barcode);
+                QuerySnapshot capitalQuerySnapshot = await capitalQuery.GetSnapshotAsync();
+                string result = "";
+                if (capitalQuerySnapshot.Documents.Count == 0)
                 {
-
-                    src.Code = document.GetValue<string>("Code");
-                    src.Quantity = document.GetValue<string>("Quantity");
-                    src.lineNo = document.GetValue<string>("lineNo");
-                    src.location = document.GetValue<string>("location");
-                    payload.status = true;
-
+                    payload.exc = "Record not Found";
                 }
-                else
+                foreach (DocumentSnapshot document in capitalQuerySnapshot.Documents)
                 {
-                    src = null;
-                    payload.status = false;
+                    if (document.Exists)
+                    {
+
+                        src.Code = document.GetValue<string>("Code");
+                        src.Quantity = document.GetValue<string>("Quantity");
+                        src.lineNo = document.GetValue<string>("lineNo");
+                        src.location = document.GetValue<string>("location");
+                        payload.status = true;
+                        payload.exc = "Record Found";
+                    }
+                    else
+                    {
+                        payload.source = null;
+                        payload.status = false;
+                        payload.exc = "Record not found";
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                payload.source = null;
+                payload.status = false;
+                payload.exc = ex.Message.ToString();
             }
             return payload;
         }
@@ -76,7 +90,11 @@ namespace FireBaseIntegration.Service
             CollectionReference destinationRef = db.Collection("Destination");
             Query query = destinationRef.WhereEqualTo("Code", src.Code);
             QuerySnapshot snapshot = await query.GetSnapshotAsync();
-
+            if (snapshot.Documents.Count == 0)
+            {
+                payLoad.exc = "Record not found";
+                payLoad.Destination = null;
+            }
             // Update the quantity field for each matching document
             foreach (DocumentSnapshot document in snapshot.Documents)
             {
@@ -133,17 +151,18 @@ namespace FireBaseIntegration.Service
                         }
                         else
                         {
-                            Console.WriteLine($"Document {document.Id} does not exist!");
+                            payLoad.exc = "Record not found";
                         }
                     }
                     catch (Exception ex)
                     {
                         updated = false;
+                        payLoad.exc = ex.Message.ToString();
                     }
                 }
                 else
                 {
-                    Console.WriteLine($"Document {document.Id} does not exist!");
+                    payLoad.exc = "Record not found";
                 }
             }
             payLoad.Destination = destination;
