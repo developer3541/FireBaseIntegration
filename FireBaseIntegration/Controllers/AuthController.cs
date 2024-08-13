@@ -36,7 +36,7 @@ namespace FireBaseIntegration.Controllers
                 var response = new
                 {
                     Message = $"Welcome {user}",
-                    status = $"true",
+                    status = true,
                     model = ""
                 };
 
@@ -49,7 +49,7 @@ namespace FireBaseIntegration.Controllers
                 var response = new
                 {
                     Message = "User doesn't exists",
-                    status = "false",
+                    status = false,
                     model = ""
                 };
 
