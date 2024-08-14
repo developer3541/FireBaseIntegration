@@ -38,7 +38,7 @@ namespace FireBaseIntegration.Controllers
         }
         [HttpPost]
         //public async Task<IActionResult> Set([FromBody] Source src)
-        public async Task<IActionResult> Set(List<SourceSetPayload> srclst)
+        public async Task<IActionResult> Set(ArgPayload srclst)
         {
             PayLoad payload = new PayLoad();
             SQLPayload sQLPayload = new SQLPayload();
@@ -47,9 +47,9 @@ namespace FireBaseIntegration.Controllers
             //src.Quantity = quantity;
             bool done = false;
             string su = "";
-            if (srclst.Count > 0)
+            if (srclst.srclst.Count > 0)
             {
-                payload = await FireBaseService.DestinationUpdate(srclst);
+                payload = await FireBaseService.DestinationUpdate(srclst.srclst);
             }
             if (payload.updated)
             {
